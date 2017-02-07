@@ -17,16 +17,36 @@
     <script type="text/javascript">
 
       var camera, scene, renderer;
-      /////////// -- not quite so simple version for testing changes in xinaesthete fork -- ///////
-      var gui, g2, g3, nestedGui; //global for hacking in console
+      var gui; //global for hacking in console
       var settings = {
         'speed':20,
-        'friction':0.1
+        'friction':0.1,
+        'mass':5,
+        'advanced settings': {
+            'restitution' : 0.9,
+            'spring' : {
+                'compression':0.6,
+                'expansion':0.2
+            },
+            'discombobulation' : false
+        },
+        'alive':true
       }
 
       initThreeJS();
       initApp();
       animate();
+
+      // add properties from 'object' to 'folder', recursively adding nested subfolders
+      function addToFolder(object, folder) {
+        for (var k in object) {
+            if (typeof object[k] === 'object') {
+                const newFolder = dat.GUIVR.create(k);
+                addToFolder(object[k], newFolder);
+                folder.addController(newFolder);
+            } else folder.add(object, k);
+        }
+      }
 
       function initThreeJS() {
         scene = new THREE.Scene();
@@ -41,43 +61,12 @@
       
       function initApp(){
 
-        gui = dat.GUIVR.create( 'Parent' );
+        gui = dat.GUIVR.create( 'settings' );
         gui.position.set(-0.5, 0.5, 0);
-        
-        gui.addImageButton({fn:()=>{console.log("imagePressed");}}, 'fn')
-        
-        gui.add(settings, 'speed');
-        gui.addButton(() => {console.log("button pressed")});
-        gui.add(settings, 'friction');
-        gui.addButton(() => {console.log("button pressed")});
-
-        scene.add( gui );
-
-        g2 = dat.GUIVR.create('child');
-        g2.add(settings, 'speed');
-        g2.add(settings, 'friction');
-
-        nestedGui = dat.GUIVR.create('grandchild');
-        nestedGui.addButton(() => {});
-        nestedGui.addButton(() => {});
-        nestedGui.addButton(() => {});
-        g2.addController(nestedGui);
-        gui.addImageButton({fn:()=>{console.log("imagePressed");}}, 'fn')
-        gui.addButton();
-
-        gui.addController(g2);
-        gui.add(settings, 'speed');
-
-        // note that there are currently some issues when folders are collapsed
-        // clicking on areas that are within the hit area of what would be the
-        // folder causes some flickering...
-        g3 = dat.GUIVR.create('younger child');
-        g3.add(settings, 'friction');
-        gui.addController(g3);
-        gui.addButton();
-        gui.addImageButton({fn:()=>{console.log("imagePressed");}}, 'fn')
-        
         gui.scale.set(0.5, 0.5, 0.5);
+
+        addToFolder(settings, gui);
+        scene.add(gui);
 
         dat.GUIVR.enableMouse( camera );
       }
