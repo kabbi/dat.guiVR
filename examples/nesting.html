@@ -30,7 +30,10 @@
             },
             'discombobulation' : false
         },
-        'alive':true
+        'alive':true,
+        'more': {
+          'ok':true
+        }
       }
 
       initThreeJS();
@@ -43,7 +46,7 @@
             if (typeof object[k] === 'object') {
                 const newFolder = dat.GUIVR.create(k);
                 addToFolder(object[k], newFolder);
-                folder.addController(newFolder);
+                folder.addFolder(newFolder);
             } else folder.add(object, k);
         }
       }
@@ -58,7 +61,7 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
       }
-      
+
       function initApp(){
 
         gui = dat.GUIVR.create( 'settings' );

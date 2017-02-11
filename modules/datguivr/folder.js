@@ -48,21 +48,12 @@ export default function createFolder({
   const group = new THREE.Group();
   const collapseGroup = new THREE.Group();
   group.add( collapseGroup );
-  // function addDebugBox() {
-  //   const box = Layout.createPanel(0.01, 0.01, 0.02, true);
-  //   box.material.color.setHex(0x00ff00);
-  //   //Colors.colorizeGeometry( box.geometry,  );
-  //   group.add(box);
-  // }
-  // addDebugBox();
-  
+
   //expose as public interface so that children can call it when their spacing changes
   group.performLayout = performLayout;
+  group.isCollapsed = () => { return state.collapsed }
 
-
-  //  Yeah. Gross.  
-  //PJT: Would probably be better to have the THREE object be a member
-  //rather than just adding properties to it in dodgy ways.
+  //  Yeah. Gross.
   const addOriginal = THREE.Group.prototype.add;
 
   function addImpl( o ){
@@ -111,11 +102,6 @@ export default function createFolder({
 
   group.addController = function( ...args ){
     args.forEach( function( obj ){
-      // PJT: not sure what purpose this extra group has.
-      // const container = new THREE.Group();
-      // if (obj.spacing) container.spacing = obj.spacing;
-      // container.add( obj );
-      // collapseGroup.add( container );
       collapseGroup.add( obj );
       obj.folder = group;
       //quick & dirty hack to hide grabBar
@@ -126,16 +112,27 @@ export default function createFolder({
     performLayout();
   };
 
+  group.addFolder = function( ...args ){
+    args.forEach( function (obj) {
+      collapseGroup.add( obj );
+      obj.folder = group;
+      obj.hideGrabber();
+    });
+
+    performLayout();
+  }
+
   function performLayout(){
     const spacingPerController = Layout.PANEL_HEIGHT + Layout.PANEL_SPACING;
-    var y = 0, lastHeight = spacingPerController, totalSpacing = spacingPerController;
+    const emptyFolderSpace = Layout.FOLDER_HEIGHT + Layout.PANEL_SPACING;
+    var y = 0, lastHeight = emptyFolderSpace, totalSpacing = emptyFolderSpace;
     collapseGroup.children.forEach( function( child, index ){
       var h = child.spacing ? child.spacing : spacingPerController;
       var spacing = 0.5 * (lastHeight + h);
       var lastY = y;
       // for the next child to be in right place, y needs to move by full spacing...
-      y -= spacing; 
-      
+      y -= spacing;
+
       lastHeight = h;
       // but for folders, the origin needs to be in the middle of the top row,
       // not the middle of the whole object...
@@ -156,7 +153,7 @@ export default function createFolder({
     else{
       downArrow.rotation.z = 0;
     }
-    
+
     group.spacing = totalSpacing;
     if (state.collapsed) group.spacing = spacingPerController;
 
