@@ -31,7 +31,7 @@ export function create( { group, panel } = {} ){
   const tPosition = new THREE.Vector3();
 
   let oldParent;
-  
+
   function getTopLevelFolder(group) {
     var folder = group.folder;
     while (folder.folder !== folder) folder = folder.folder;
@@ -47,7 +47,8 @@ export function create( { group, panel } = {} ){
     if( input.mouse ){
       if( input.pressed && input.selected && input.raycast.ray.intersectPlane( input.mousePlane, input.mouseIntersection ) ){
         if( input.interaction.press === interaction ){
-          folder.position.copy( input.mouseIntersection.sub( input.mouseOffset ) );
+          tPosition.setFromMatrixPosition(input.selected.parent.matrixWorld);
+          folder.position.copy( input.mouseIntersection.sub( input.mouseOffset ).sub( tPosition ) );
           return;
         }
       }
